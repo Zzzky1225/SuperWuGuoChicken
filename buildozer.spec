@@ -1,7 +1,4 @@
 [buildozer]
-pypi_mirror = https://pypi.tuna.tsinghua.edu.cn/simple
-android.sdk_mirror = https://mirrors.cloud.tencent.com/AndroidSDK/
-android.ndk_mirror = https://mirrors.cloud.tencent.com/AndroidSDK/ndk-bundle/
 android.accept_license = yes
 
 [app]
@@ -10,10 +7,12 @@ package.name = wuguoji
 package.domain = com.chaoji
 version = 1.0
 android.versioncode = 1
+android.strip_libs = True
+android.compression_level = 9
 source.dir = .
 source.include_exts = py,png,jpg,wav,ttf
 source.include_patterns = assets/*
-requirements = python3,pygame,pyjnius
+requirements = python3==3.10.12,pygame==2.1.3
 android.bootstrap = sdl2
 orientation = landscape
 fullscreen = 1
