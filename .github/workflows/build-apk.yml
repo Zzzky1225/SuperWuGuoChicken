@@ -34,18 +34,20 @@ jobs:
           sudo apt update
           sudo apt install -y python3-pip build-essential git libssl-dev autoconf libtool libtool-bin pkg-config zlib1g-dev openjdk-17-jdk unzip autoconf-archive
           sudo apt install -y python3.10 python3.10-dev python3.10-venv
+          # 设置系统默认python3为3.10，消除版本不匹配报错
+          sudo update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.10 1
+          sudo update-alternatives --set python3 /usr/bin/python3.10
 
       - name: Create venv, install buildozer, build debug apk
         run: |
           python3.10 -m venv ~/py310_env
           source ~/py310_env/bin/activate
           pip install buildozer cython==0.29.36
-          # 不存在spec就自动生成
           if [ ! -f buildozer.spec ]; then
             buildozer init
           fi
-          # 静默构建debug安装包
-          echo y | buildozer android debug --log-level 0
+          # 使用venv内python启动buildozer，彻底规避hostpython版本冲突
+          echo y | python3 -m buildozer android debug --log-level 2
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
