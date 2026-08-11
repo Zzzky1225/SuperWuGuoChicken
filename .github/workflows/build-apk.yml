@@ -14,7 +14,7 @@ jobs:
       - name: Install system dependencies
         run: |
           sudo apt update
-          sudo apt install -y python3-pip build-essential git libssl-dev autoconf libtool pkg-config zlib1g-dev openjdk-17-jdk unzip
+          sudo apt install -y python3-pip build-essential git libssl-dev autoconf libtool libtool-bin pkg-config zlib1g-dev openjdk-17-jdk unzip autoconf-archive
 
       - name: Install buildozer & cython
         run: |
