@@ -13,7 +13,7 @@ source.dir = .
 source.include_exts = py,png,jpg,wav,ttf
 source.include_patterns = assets/*
 requirements = python3==3.10.12,pygame==2.1.3
-android.bootstrap = sdl2
+p4a.bootstrap = sdl2
 orientation = landscape
 fullscreen = 1
 android.minapi = 21
