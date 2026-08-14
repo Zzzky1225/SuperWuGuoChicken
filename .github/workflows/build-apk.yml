@@ -17,14 +17,14 @@ jobs:
           sudo apt install -y python3.10 python3.10-venv python3.10-dev build-essential git openjdk-17-jdk unzip autoconf libtool pkg-config zlib1g-dev
 
       - name: Build APK
+        # 仅新增Java17环境，修复Gradle Java11报错，python代码一行不改
         env:
-          # 关键修复：强制使用预装的JDK17，覆盖默认JDK11
           JAVA_HOME: /usr/lib/jvm/temurin-17-jdk-amd64
-          PATH: $JAVA_HOME/bin:$PATH
+          PATH: $JAVA_HOME:$PATH
         run: |
           python3.10 -m venv env
           source env/bin/activate
-          pip install buildozer==1.5.0 cython==0.29.36
+          pip install buildozer==1.6.0 cython==0.29.36
           buildozer android release
 
       - name: Upload built APK
