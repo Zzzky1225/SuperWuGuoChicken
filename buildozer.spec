@@ -9,7 +9,7 @@ android.compression_level = 9
 source.dir = .
 source.include_exts = py,png,jpg,wav,ttf
 source.include_patterns = assets/*
-requirements = python3,pygame_ce
+requirements = python3==3.10,git+https://mirror.ghproxy.com/https://github.com/pygame-community/pygame-ce.git
 p4a.bootstrap = sdl2
 orientation = landscape
 fullscreen = 1
