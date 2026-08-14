@@ -9,7 +9,7 @@ android.compression_level = 9
 source.dir = .
 source.include_exts = py,png,jpg,wav,ttf
 source.include_patterns = assets/*
-requirements = python3==3.11,pygame==2.1.3
+requirements = python3,pygame-ce
 p4a.bootstrap = sdl2
 orientation = landscape
 fullscreen = 1
@@ -18,7 +18,7 @@ android.archs = arm64-v8a
 android.api = 33
 android.ndk = 25b
 icon.filename = %(source.dir)s/assets/icon.png
-android.manifest.application_attributes = android:appCategory='game'
+android.manifest.application_attributes = android:appCategory="game"
 android.debuggable = False
 android.permissions = READ_EXTERNAL_STORAGE
 requirements.pip_options = --timeout=1200
