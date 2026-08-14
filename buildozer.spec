@@ -1,6 +1,3 @@
-[buildozer]
-android.accept_license = yes
-
 [app]
 title = 超级吴国鸡跑酷
 package.name = wuguoji
@@ -25,3 +22,4 @@ android.manifest.application_attributes = android:appCategory='game'
 android.debuggable = False
 android.permissions = READ_EXTERNAL_STORAGE
 requirements.pip_options = --timeout=1200
+android.accept_sdk_license = True
