@@ -21,5 +21,5 @@ icon.filename = %(source.dir)s/assets/icon.png
 android.manifest.application_attributes = android:appCategory="game"
 android.debuggable = False
 android.permissions = READ_EXTERNAL_STORAGE,WRITE_EXTERNAL_STORAGE
-requirements.pip_options = --timeout=1200
+requirements.pip_options = --timeout=1200 --no-cache-dir
 android.accept_sdk_license = True
