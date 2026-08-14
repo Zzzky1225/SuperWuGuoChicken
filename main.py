@@ -1,6 +1,10 @@
-# -*- coding: utf-8 -*-
-import pygame
 import os
+
+os.environ["SDL_AUDIODRIVER"] = "android"
+os.environ["SDL_VIDEODRIVER"] = "android"
+# os.environ["SDL_OPENGL_ES_VERSION"] = "2.0"
+
+import pygame
 import random
 import sys
 
