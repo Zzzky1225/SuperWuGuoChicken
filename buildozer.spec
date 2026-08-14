@@ -23,3 +23,4 @@ android.debuggable = False
 android.permissions = READ_EXTERNAL_STORAGE
 requirements.pip_options = --timeout=1200
 android.accept_sdk_license = True
+android.enable_egl = True
