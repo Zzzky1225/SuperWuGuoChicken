@@ -27,16 +27,22 @@ jobs:
           sudo apt update
           sudo apt install -y build-essential git unzip autoconf libtool pkg-config zlib1g-dev
 
-      # 关键：每次构建强制删除旧构建目录，彻底清除x86 pygame缓存！
-      - name: Clean old build cache
+      # 【关键1】全部垃圾彻底清空，env虚拟环境一并删除！
+      - name: Full Cleanup
         run: |
-          rm -rf .buildozer env bin build
+          rm -rf .buildozer env bin build __pycache__ *.pyc
 
+      # 【关键2】不要创建长期虚拟环境！直接使用用户空间pip，避免环境污染
+      - name: Install buildozer globally (user scope)
+        run: |
+          python3.10 -m pip install --user buildozer==1.6.0 cython==0.29.36
+          export PATH=$HOME/.local/bin:$PATH
+          buildozer --version
+
+      # 【关键3】独立运行构建，不嵌套在venv内，杜绝复制宿主机x86库
       - name: Build APK
         run: |
-          python3.10 -m venv env
-          source env/bin/activate
-          pip install buildozer==1.6.0 cython==0.29.36
+          export PATH=$HOME/.local/bin:$PATH
           buildozer android debug
 
       - name: Upload built APK
