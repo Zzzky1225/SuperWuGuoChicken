@@ -11,13 +11,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # 1.官方动作稳定提供Python3.10，保证 python3.10 命令存在！解决 command not found
       - name: Set up Python 3.10
         uses: actions/setup-python@v5
         with:
           python-version: "3.10"
 
-      # 2.官方动作稳定JDK17，解决gradle java版本报错
       - name: Setup JDK 17
         uses: actions/setup-java@v4
         with:
@@ -29,7 +27,11 @@ jobs:
           sudo apt update
           sudo apt install -y build-essential git unzip autoconf libtool pkg-config zlib1g-dev
 
-      # 这里全部保留你原来的命令！python3.10 不动！
+      # 关键：每次构建强制删除旧构建目录，彻底清除x86 pygame缓存！
+      - name: Clean old build cache
+        run: |
+          rm -rf .buildozer env bin build
+
       - name: Build APK
         run: |
           python3.10 -m venv env
