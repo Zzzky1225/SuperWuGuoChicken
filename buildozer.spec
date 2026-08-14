@@ -18,8 +18,10 @@ orientation = landscape
 fullscreen = 1
 android.minapi = 21
 android.archs = arm64-v8a
+android.api = 33
+android.ndk = 25b
 icon.filename = %(source.dir)s/assets/icon.png
 android.manifest.application_attributes = android:appCategory='game'
-android.debuggable = True
+android.debuggable = False
 android.permissions = READ_EXTERNAL_STORAGE
 requirements.pip_options = --timeout=1200
