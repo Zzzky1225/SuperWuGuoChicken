@@ -17,7 +17,7 @@ android.bootstrap = sdl2
 orientation = landscape
 fullscreen = 1
 android.minapi = 21
-android.archs = arm64-v8a,armeabi-v7a
+android.archs = arm64-v8a
 icon.filename = %(source.dir)s/assets/icon.png
 android.manifest.application_attributes = android:appCategory='game'
 android.debuggable = True
