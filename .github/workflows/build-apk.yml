@@ -1,51 +1,37 @@
-name: Build Release APK
+name: Build Release APK(Docker)
 on:
   push:
     branches: [ main ]
   workflow_dispatch:
-
 jobs:
   build:
     runs-on: ubuntu-22.04
-    timeout-minutes: 40
+    timeout-minutes: 60
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up Python 3.10
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.10"
-
-      - name: Setup JDK 17
-        uses: actions/setup-java@v4
-        with:
-          java-version: '17'
-          distribution: 'temurin'
-
-      - name: Install system dependencies
+      - name: Clean old cache/output
         run: |
-          sudo apt update
-          sudo apt install -y build-essential git unzip autoconf libtool pkg-config zlib1g-dev
+          rm -rf .buildozer bin build __pycache__
 
-      # 【关键1】全部垃圾彻底清空，env虚拟环境一并删除！
-      - name: Full Cleanup
+      - name: Build APK inside official buildozer docker
         run: |
-          rm -rf .buildozer env bin build __pycache__ *.pyc
+          docker run --rm \
+            -v "$(pwd)":/home/user/hostcwd \
+            kivy/buildozer:latest \
+            android debug
 
-      # 【关键2】不要创建长期虚拟环境！直接使用用户空间pip，避免环境污染
-      - name: Install buildozer globally (user scope)
+      - name: Verify so architecture,fail if x86 found
         run: |
-          python3.10 -m pip install --user buildozer==1.6.0 cython==0.29.36
-          export PATH=$HOME/.local/bin:$PATH
-          buildozer --version
+          sudo apt install -y binutils
+          unzip -q bin/*.apk -d apktmp
+          readelf -h apktmp/lib/arm64-v8a/libpython3.so
+          if readelf -h apktmp/lib/arm64-v8a/libpython3.so | grep "Intel 80386"; then
+            echo "ERROR: x86 so detected inside arm64‑v8a folder!"
+            exit 1
+          fi
 
-      # 【关键3】独立运行构建，不嵌套在venv内，杜绝复制宿主机x86库
-      - name: Build APK
-        run: |
-          export PATH=$HOME/.local/bin:$PATH
-          buildozer android debug
-
-      - name: Upload built APK
+      - name: Upload built APK artifact
         uses: actions/upload-artifact@v4
         with:
           name: GameAPK
