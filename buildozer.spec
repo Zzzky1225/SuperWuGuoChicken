@@ -9,10 +9,10 @@ android.compression_level = 9
 source.dir = .
 source.include_exts = py,png,jpg,wav,ttf
 source.include_patterns = assets/*
-requirements = python3,pygame
+requirements = python3==3.11.6,pygame
 p4a.bootstrap = sdl2
-p4a.hostpython_version = "3.10"
-p4a.python_version = "3.10"
+p4a.hostpython_version = "3.11.6"
+p4a.python_version = "3.11.6"
 p4a.allow_prebuilt_host_extensions = False
 orientation = landscape
 fullscreen = 1
