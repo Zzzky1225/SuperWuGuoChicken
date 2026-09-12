@@ -1,0 +1,51 @@
+name: Build Release APK
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Clean old build cache
+        run: |
+          rm -rf .buildozer bin build __pycache__ apktmp
+
+      - name: Setup Android SDK + NDK r25b
+        uses: android-actions/setup-android@v3
+
+      - name: Setup Python 3.10
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
+      - name: Install build dependencies
+        run: |
+          python -m pip install --upgrade pip
+          # 安装master分支p4a，修复python3.10交叉编译bug
+          pip install git+https://github.com/python-for-android/python-for-android.git
+          pip install buildozer meson==1.4.0 cython==0.29.37
+          sudo apt update
+          sudo apt install -y binutils build-essential git
+
+      - name: Build APK
+        run: buildozer android debug
+
+      - name: Verify libpygame.so ABI（核心校验）
+        run: |
+          unzip -q bin/*.apk -d apktmp
+          readelf -h apktmp/lib/arm64-v8a/libpygame.so
+          if readelf -h apktmp/lib/arm64-v8a/libpygame.so | grep -E "Intel|x86"; then
+            echo "❌ ERROR: libpygame.so 是x86架构，打包失败！"
+            exit 1
+          fi
+          echo "✅ libpygame.so ARM64校验成功"
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: SuperWuGuoChicken-APK
+          path: bin/*.apk
