@@ -1,9 +1,7 @@
 import os
-
 os.environ["SDL_AUDIODRIVER"] = "android"
 os.environ["SDL_VIDEODRIVER"] = "android"
 # os.environ["SDL_OPENGL_ES_VERSION"] = "2.0"
-
 import pygame
 import random
 import sys
@@ -16,16 +14,19 @@ def get_asset_path(file_name):
     return os.path.join(base_dir, "assets", file_name)
 
 pygame.init()
+W = 1920
+H = 1080
+screen = None
 if hasattr(sys, "getandroidapilevel"):
     import android
     W, H = android.get_window_size()
-    screen = pygame.display.set_mode((W, H), pygame.FULLSCREEN)
+    screen = pygame.display.set_mode((W, H), pygame.FULLSCREEN | pygame.NOFRAME)
 else:
     W, H = 1920, 1080
     screen = pygame.display.set_mode((W, H))
-pygame.display.set_caption("超级吴国鸡跑酷")
-clock = pygame.time.Clock()
 
+clock = pygame.time.Clock()
+GROUND_Y = 0
 
 def load_img_scale_height(filename, target_h):
     full_path = get_asset_path(filename)
@@ -71,20 +72,27 @@ font = get_chinese_font(32)
 font_big = get_chinese_font(48)
 font_small = get_chinese_font(24)
 font_reset = get_chinese_font(28)
+
 bg_img = load_img("bg.jpg", W, H)
 TARGET_HEIGHT = 425
-player_frames = [
+
+player_frames_raw = [
     load_img_scale_height("run0.png", TARGET_HEIGHT),
     load_img_scale_height("run1.png", TARGET_HEIGHT),
     load_img_scale_height("run2.png", TARGET_HEIGHT),
 ]
+# 过滤None，防止资源缺失崩溃
+player_frames = [f for f in player_frames_raw if f is not None]
+
 obs_pool = []
 for i in range(22):
     img = load_img_scale_height(f"ob{i}.png", TARGET_HEIGHT)
     if img:
         obs_pool.append(img)
+
 hit_sounds = [load_snd(f"hit{i}.wav") for i in range(1, 11)]
 death_sounds = [load_snd(f"death{i}.wav") for i in range(1, 6)]
+
 class InputBox:
     def __init__(self, x, y, w, h, default_text=""):
         self.rect = pygame.Rect(x, y, w, h)
@@ -113,6 +121,7 @@ class InputBox:
         pygame.draw.rect(screen, color, self.rect, 3)
         t_surf = font.render(self.text, True, (255, 255, 255))
         screen.blit(t_surf, (self.rect.x + 8, self.rect.y + 4))
+
 class Slider:
     RANGE_MIN = -9999
     RANGE_MAX = 9999
@@ -143,6 +152,7 @@ class Slider:
                 self.dragging = True
                 self.value = self.x_to_val(tx)
                 return True
+        # =========修复：手指抬起终止拖动=========
         if event.type == pygame.MOUSEBUTTONUP or event.type == pygame.FINGERUP:
             self.dragging = False
         if event.type == pygame.MOUSEMOTION and self.dragging:
@@ -160,6 +170,7 @@ class Slider:
         knob_rect = pygame.Rect(knob_x - self.knob_w//2, self.rect.y-4, self.knob_w, self.rect.height+8)
         pygame.draw.rect(screen,(220,80,40),knob_rect)
         pygame.draw.rect(screen,(255,255,255),knob_rect,2)
+
 GROUND_Y = H - TARGET_HEIGHT
 player_x = 200
 obs_list = []
@@ -246,10 +257,12 @@ panic_btn_y = 20
 panic_button_rect = pygame.Rect(panic_btn_x,panic_btn_y,panic_btn_w,panic_btn_h)
 reset_button_rects = [None]*12
 mask_surface = pygame.Surface((W,H), pygame.SRCALPHA)
+
 def reset_game():
     global player_y,player_vy,on_ground,obs_speed,gravity,jump_power,spawn_interval
     global spawn_timer,obs_list,bg_x,anim_timer,anim_index,score,hp,hurt_timer,player_dead_angle
-    global MAX_HP,HURT_DURATION,player_x,anim_speed,obs_scale,bg_scroll_speed_scale,score_rate,jump_damping
+    global MAX_HP,HURT_DURATION,player_x,anim_speed,obs_scale,bg_scroll_speed_scale,score_rate,jump_damping,GROUND_Y
+    GROUND_Y = H - TARGET_HEIGHT
     def get_val(idx,defv):
         try:
             v = float(input_boxes[idx].text.strip())
@@ -298,6 +311,7 @@ def reset_game():
     hp = MAX_HP
     hurt_timer = 0
     player_dead_angle = 0
+
 running = True
 while running:
     dt = clock.tick(60)/1000.0
@@ -375,7 +389,7 @@ while running:
         if hurt_timer>0:
             hurt_timer -= 1
         anim_timer +=1
-        if anim_timer >= anim_speed:
+        if anim_timer >= anim_speed and len(player_frames)>0:
             anim_timer =0
             anim_index = (anim_index+1)%len(player_frames)
         if not on_ground:
@@ -399,22 +413,26 @@ while running:
             obs["x"] -= obs_speed
             if obs["x"]+obs["w"] <0:
                 obs_list.remove(obs)
-        cur_frame = player_frames[anim_index]
-        player_mask = pygame.mask.from_surface(cur_frame)
-        for obs in obs_list[:]:
-            offset = (obs["x"]-player_x, obs["y"]-player_y)
-            if player_mask.overlap(obs["mask"],offset):
-                hp -=1
-                hurt_timer = HURT_DURATION
-                obs_list.remove(obs)
-                s = random.choice(hit_sounds)
-                if s: s.play()
-                if hp <=0:
-                    state = "gameover"
-                    player_dead_angle =90
-                    s_death = random.choice(death_sounds)
-                    if s_death: s_death.play()
-                break
+        if len(player_frames) ==0:
+            cur_frame = None
+        else:
+            cur_frame = player_frames[anim_index]
+        if cur_frame:
+            player_mask = pygame.mask.from_surface(cur_frame)
+            for obs in obs_list[:]:
+                offset = (obs["x"]-player_x, obs["y"]-player_y)
+                if player_mask.overlap(obs["mask"],offset):
+                    hp -=1
+                    hurt_timer = HURT_DURATION
+                    obs_list.remove(obs)
+                    s = random.choice(hit_sounds)
+                    if s: s.play()
+                    if hp <=0:
+                        state = "gameover"
+                        player_dead_angle =90
+                        s_death = random.choice(death_sounds)
+                        if s_death: s_death.play()
+                    break
     if bg_img:
         screen.blit(bg_img,(bg_x,0))
         screen.blit(bg_img,(bg_x+W,0))
@@ -515,19 +533,20 @@ while running:
             pygame.draw.rect(screen,(255,255,255),panic_button_rect,3)
             back_text = font.render("返回设置",True,(255,255,255))
             screen.blit(back_text, back_text.get_rect(center = panic_button_rect.center))
-        current_frame = player_frames[anim_index]
-        draw_img = current_frame.copy()
-        if hurt_timer>0:
-            mask = pygame.mask.from_surface(draw_img)
-            red_overlay = pygame.Surface(draw_img.get_size(),pygame.SRCALPHA)
-            red_overlay.fill((255,0,0,90))
-            red_overlay = mask.to_surface(surface=red_overlay,setcolor=(255,0,0,90),unsetcolor=(0,0,0,0))
-            draw_img.blit(red_overlay,(0,0))
-        if state == "gameover":
-            draw_img = pygame.transform.rotate(draw_img,player_dead_angle)
-        rect = draw_img.get_rect()
-        rect.topleft = (player_x,player_y)
-        screen.blit(draw_img,rect)
+        if len(player_frames)>0:
+            current_frame = player_frames[anim_index]
+            draw_img = current_frame.copy()
+            if hurt_timer>0:
+                mask = pygame.mask.from_surface(draw_img)
+                red_overlay = pygame.Surface(draw_img.get_size(),pygame.SRCALPHA)
+                red_overlay.fill((255,0,0,90))
+                red_overlay = mask.to_surface(surface=red_overlay,setcolor=(255,0,0,90),unsetcolor=(0,0,0,0))
+                draw_img.blit(red_overlay,(0,0))
+            if state == "gameover":
+                draw_img = pygame.transform.rotate(draw_img,player_dead_angle)
+            rect = draw_img.get_rect()
+            rect.topleft = (player_x,player_y)
+            screen.blit(draw_img,rect)
         for obs in obs_list:
             screen.blit(obs["img"],(obs["x"],obs["y"]))
         score_text = font.render(f"分数:{int(score)}",True,(255,255,255))
