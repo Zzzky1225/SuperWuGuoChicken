@@ -9,37 +9,35 @@ jobs:
     timeout-minutes: 60
     steps:
       - uses: actions/checkout@v4
-
       - name: Clean old build cache
         run: |
-          rm -rf .buildozer bin build __pycache__ apktmp
-
+          rm -rf .buildozer bin build __pycache__ apktmp p4a.zip python-for-android-master
       # ====== 新增：装 JDK 17，解决 sdkmanager 报错 ======
       - name: Setup JDK 17
         uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: "17"
-
       - name: Setup Android SDK + NDK r25b
         uses: android-actions/setup-android@v3
-
       - name: Setup Python 3.10
         uses: actions/setup-python@v5
         with:
           python-version: "3.10"
-
       - name: Install build dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install git+https://github.com/python-for-android/python-for-android.git
+          # 替换git+克隆：下载源码zip本地安装p4a，完全跳过git
+          wget https://github.com/python-for-android/python-for-android/archive/refs/heads/master.zip -O p4a.zip
+          unzip -q p4a.zip
+          cd python-for-android-master
+          pip install .
+          cd ..
           pip install buildozer meson==1.4.0 cython==0.29.37
           sudo apt update
           sudo apt install -y binutils build-essential git
-
       - name: Build APK
         run: buildozer android debug
-
       - name: Verify libpygame.so ABI
         run: |
           unzip -q bin/*.apk -d apktmp
@@ -49,7 +47,6 @@ jobs:
             exit 1
           fi
           echo "✅ libpygame.so ARM64校验成功"
-
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
