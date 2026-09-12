@@ -11,8 +11,8 @@ jobs:
       - uses: actions/checkout@v4
       - name: Clean old build cache
         run: |
-          rm -rf .buildozer bin build __pycache__ apktmp p4a.zip python-for-android-main
-      # ====== 新增：装 JDK 17，解决 sdkmanager 报错 ======
+          rm -rf .buildozer bin build __pycache__ apktmp p4a.zip python-for-android-*
+
       - name: Setup JDK 17
         uses: actions/setup-java@v4
         with:
@@ -27,12 +27,7 @@ jobs:
       - name: Install build dependencies
         run: |
           python -m pip install --upgrade pip
-          # 修复：分支main，重试3次防止网络抖动
-          wget https://github.com/python-for-android/python-for-android/archive/refs/heads/main.zip -O p4a.zip
-          unzip -q p4a.zip
-          cd python-for-android-main
-          pip install .
-          cd ..
+          pip install python-for-android
           pip install buildozer meson==1.4.0 cython==0.29.37
           sudo apt update
           sudo apt install -y binutils build-essential git
