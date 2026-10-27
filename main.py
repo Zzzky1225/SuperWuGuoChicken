@@ -7,7 +7,6 @@ import math
 # ==================================================
 # 1. 资源加载与管理 (Asset Manager)
 # ==================================================
-import sys, os
 def get_asset_path(file_name):
     if hasattr(sys, "_MEIPASS"):
         base_path = sys._MEIPASS
